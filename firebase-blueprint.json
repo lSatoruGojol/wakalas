@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account information and preferences.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "lastSeen": { "type": "string", "format": "date-time" },
+        "hasSeenTutorial": { "type": "boolean" }
+      },
+      "required": ["userId", "email"]
+    },
+    "SolverReport": {
+      "title": "Solver Report",
+      "description": "Individual statics problem solution report.",
+      "type": "object",
+      "properties": {
+        "reportId": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "parameters": { "type": "object" },
+        "tension": { "type": "number" },
+        "steps": { "type": "array" }
+      },
+      "required": ["reportId", "userId", "createdAt", "tension"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/reports/{reportId}": {
+      "schema": "SolverReport",
+      "description": "Solved problem reports"
+    }
+  }
+}

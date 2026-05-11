@@ -1,0 +1,8 @@
+{
+  "name": "Estática Premium Plus Max 2.0",
+  "description": "Simulación 3D avanzada de estática con control gestual, resolución paso a paso y asistente IA.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": []
+}
