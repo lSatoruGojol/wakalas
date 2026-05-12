@@ -81,7 +81,13 @@ export function Challenges({ onSelect, userId }: Props) {
         throw new Error('GEMINI_API_KEY no encontrada. Configure VITE_GEMINI_API_KEY en las variables de entorno.');
       }
       const ai = new GoogleGenAI({ apiKey });
-      const prompt = `Genera un nuevo problema de estática basado en un eje con polea y palanca. Devuelve los parámetros numéricos necesarios para el simulador.`;
+      const prompt = `Genera un nuevo problema de estática para ingeniería. El sistema consiste en un eje horizontal con un rodamiento en C y otro en D. Tiene una palanca en el extremo A y una polea en el extremo E.
+      Define valores realistas para:
+      - Carga en A (500-1500 N)
+      - Longitud de la palanca (150-300 mm)
+      - Radio de la polea (80-180 mm)
+      - Distancias entre componentes (40-150 mm)
+      Proporciona un título creativo y una descripción técnica breve.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -185,27 +191,27 @@ export function Challenges({ onSelect, userId }: Props) {
           <h3 className="text-lg font-black text-white uppercase tracking-tighter mb-2 italic-serif-headers decoration-cyan-500/30 underline underline-offset-4 decoration-2">Generador Cuántico</h3>
           <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest mb-8 px-4">AI_Neural_Engine_v4.5 • Desafíos Sincronizados</p>
           
-          <div className="flex w-full gap-3">
+          <div className="flex w-full flex-col gap-3">
             <button
               onClick={generateChallenge}
               disabled={generating}
-              className="group relative flex-1 py-5 bg-white text-black rounded-[24px] text-[10px] font-black uppercase tracking-[0.3em] transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 overflow-hidden shadow-xl"
+              className="group relative w-full py-5 bg-white text-black rounded-[24px] text-[10px] font-black uppercase tracking-[0.3em] transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 overflow-hidden shadow-xl"
             >
               <div className="absolute inset-0 bg-cyan-500 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
               <span className="relative z-10 group-hover:text-white transition-colors flex items-center gap-2">
-                {generating ? 'CONSULTANDO...' : <>INICIAR <Sparkles className="w-4 h-4" /></>}
+                {generating ? 'GENERANDO DESAFÍO...' : <>NUEVO DESAFÍO <Sparkles className="w-4 h-4" /></>}
               </span>
             </button>
             <button
               onClick={() => setShowHistory(!showHistory)}
               className={cn(
-                "w-16 rounded-[24px] border transition-all flex items-center justify-center",
+                "w-full py-3 rounded-2xl border transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest",
                 showHistory 
                   ? "bg-cyan-500/20 border-cyan-500 text-cyan-400" 
-                  : "bg-white/5 border-white/5 text-zinc-400 hover:bg-white/10"
+                  : "bg-white/5 border-white/10 text-zinc-500 hover:bg-white/10 hover:text-white"
               )}
             >
-              <History className="w-6 h-6" />
+              <History className="w-4 h-4" /> {showHistory ? 'OCULTAR HISTORIAL' : 'VER MIS DESAFÍOS'}
             </button>
           </div>
         </div>
@@ -277,41 +283,47 @@ export function Challenges({ onSelect, userId }: Props) {
 
             <p className="text-[12px] text-zinc-400 font-light leading-relaxed font-mono px-2">{currentChallenge.description}</p>
             
-            <div className="pt-6 flex flex-col gap-3">
-              <div className="flex gap-4">
+              <div className="flex flex-col gap-2">
                 <button
                   onClick={() => onSelect(currentChallenge.params)}
-                  className="group flex-1 py-4 bg-cyan-600 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-cyan-500 hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all"
+                  className="group w-full py-4 bg-cyan-600 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-cyan-500 hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all"
                 >
-                  CARGAR_SIM <Play className="w-4 h-4 fill-current group-hover:animate-ping" />
+                  CARGAR EN SIMULADOR <Play className="w-4 h-4 fill-current group-hover:translate-x-1 transition-transform" />
                 </button>
-                <button 
-                  onClick={() => setShowSolution(!showSolution)}
-                  className={cn(
-                    "w-16 h-16 rounded-2xl border transition-all flex items-center justify-center group/btn",
-                    showSolution ? "bg-amber-500/20 border-amber-500" : "bg-white/5 border-white/5 hover:bg-amber-500/10"
-                  )}
-                  title="Ver Solución Paso a Paso"
-                >
-                  <Trophy className={cn("w-6 h-6 transition-all", showSolution ? "text-amber-500 scale-110" : "text-amber-500/50 group-hover/btn:text-amber-500")} />
-                </button>
-                {userId && !currentChallenge.solved && (
+                
+                <div className="flex gap-2">
                   <button 
-                    onClick={markAsSolved}
-                    disabled={markingSolved}
-                    className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl hover:bg-emerald-500/20 transition-all flex items-center justify-center group/check disabled:opacity-50"
-                    title="Marcar como Resuelto"
+                    onClick={() => setShowSolution(!showSolution)}
+                    className={cn(
+                      "flex-1 py-4 rounded-2xl border transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest",
+                      showSolution ? "bg-amber-500/20 border-amber-500 text-amber-500" : "bg-white/5 border-white/5 text-zinc-500 hover:bg-amber-500/10 hover:text-amber-500"
+                    )}
                   >
-                    <Trophy className="w-6 h-6 text-emerald-500/50 group-hover/check:text-emerald-500 group-hover/check:scale-110 transition-all" />
+                    <Trophy className="w-4 h-4" /> {showSolution ? 'OCULTAR SOLUCIÓN' : 'VER SOLUCIÓN'}
                   </button>
-                )}
+
+                  {userId && !currentChallenge.solved && (
+                    <button 
+                      onClick={markAsSolved}
+                      disabled={markingSolved}
+                      className="flex-1 py-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-[10px] font-black text-emerald-500 uppercase tracking-widest hover:bg-emerald-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <Trophy className="w-4 h-4" /> {markingSolved ? 'GUARDANDO...' : 'MARCAR RESUELTO'}
+                    </button>
+                  )}
+                  
+                  {currentChallenge.solved && (
+                    <div className="flex-1 py-4 bg-emerald-500 border border-emerald-400 rounded-2xl text-[10px] font-black text-black uppercase tracking-widest flex items-center justify-center gap-2">
+                      <Trophy className="w-4 h-4" /> ¡RESUELTO!
+                    </div>
+                  )}
+                </div>
               </div>
 
               <AnimatePresence>
                 {showSolution && <SolutionDisplay params={currentChallenge.params} />}
               </AnimatePresence>
-            </div>
-          </motion.div>
+            </motion.div>
         )}
       </AnimatePresence>
     </div>
