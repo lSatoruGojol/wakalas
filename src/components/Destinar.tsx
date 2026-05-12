@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 import { motion, AnimatePresence } from 'motion/react';
 import { Send, Sparkles, X, Terminal, Cpu, MessageSquare, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -40,11 +40,12 @@ export function Destinar() {
 
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: prompt
+        contents: [{ role: 'user', parts: [{ text: prompt }] }]
       });
 
       setMessages(prev => [...prev, { role: 'ai', content: response.text || 'Error de sincronización con el núcleo.' }]);
     } catch (error) {
+      console.error('Error en Destinar AI:', error);
       setMessages(prev => [...prev, { role: 'ai', content: 'Interrupción en el flujo de datos. Por favor, reintente.' }]);
     } finally {
       setIsTyping(false);

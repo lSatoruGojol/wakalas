@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Target, Sparkles, ChevronRight, Play, Trophy, BrainCircuit } from 'lucide-react';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 import { StaticsParameters } from '../../hooks/useStaticsSolver';
 import { cn } from '../../lib/utils';
 import { db } from '../../lib/firebase';
@@ -24,27 +24,33 @@ export function Challenges({ onSelect, userId }: Props) {
         throw new Error('GEMINI_API_KEY no encontrada. Configure VITE_GEMINI_API_KEY en las variables de entorno.');
       }
       const ai = new GoogleGenAI({ apiKey });
-      const prompt = `Genera un nuevo problema de estática basado en un eje con polea y palanca. 
-      Devuelve ÚNICAMENTE un objeto JSON con este formato:
-      {
-        "title": "string",
-        "description": "string corto",
-        "params": { 
-          "loadA": number, 
-          "leverLength": number, 
-          "pulleyRadius": number, 
-          "distBC": number, 
-          "distCD": number, 
-          "distDE": number 
-        }
-      }
-      Rangos sugeridos: loadA(500-1500), lever(150-300), pulley(80-180), dists(40-150).`;
+      const prompt = `Genera un nuevo problema de estática basado en un eje con polea y palanca. Devuelve los parámetros numéricos necesarios para el simulador.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: prompt,
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
         config: {
-          responseMimeType: 'application/json'
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING, description: "Título del problema" },
+              description: { type: Type.STRING, description: "Breve descripción técnica" },
+              params: {
+                type: Type.OBJECT,
+                properties: {
+                  loadA: { type: Type.NUMBER, description: "Carga en A (500-1500)" },
+                  leverLength: { type: Type.NUMBER, description: "Longitud palanca (150-300)" },
+                  pulleyRadius: { type: Type.NUMBER, description: "Radio polea (80-180)" },
+                  distBC: { type: Type.NUMBER, description: "Distancia B-C (40-150)" },
+                  distCD: { type: Type.NUMBER, description: "Distancia C-D (40-150)" },
+                  distDE: { type: Type.NUMBER, description: "Distancia D-E (40-150)" }
+                },
+                required: ["loadA", "leverLength", "pulleyRadius", "distBC", "distCD", "distDE"]
+              }
+            },
+            required: ["title", "description", "params"]
+          }
         }
       });
 
