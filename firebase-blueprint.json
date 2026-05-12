@@ -27,12 +27,30 @@
         "steps": { "type": "array" }
       },
       "required": ["reportId", "userId", "createdAt", "tension"]
+    },
+    "Challenge": {
+      "title": "Statics Challenge",
+      "description": "AI-generated statics challenge.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "params": { "type": "object" },
+        "solved": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "solvedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "description", "params", "solved", "createdAt"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "User",
       "description": "User profiles"
+    },
+    "/users/{userId}/challenges/{challengeId}": {
+      "schema": "Challenge",
+      "description": "User generated challenges"
     },
     "/reports/{reportId}": {
       "schema": "SolverReport",

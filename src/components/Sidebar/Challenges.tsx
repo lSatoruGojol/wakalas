@@ -7,6 +7,7 @@ import { cn } from '../../lib/utils';
 import { db } from '../../lib/firebase';
 import { collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs, updateDoc, doc } from 'firebase/firestore';
 import confetti from 'canvas-confetti';
+import { handleFirestoreError, OperationType } from '../../lib/firebaseUtils';
 
 interface Props {
   onSelect: (p: StaticsParameters) => void;
@@ -43,13 +44,14 @@ export function Challenges({ onSelect, userId }: Props) {
       });
       setHistory(h);
     } catch (error) {
-      console.error('Error fetching history:', error);
+      handleFirestoreError(error, OperationType.LIST, `users/${userId}/challenges`);
     }
   };
 
   const markAsSolved = async () => {
     if (!userId || !currentChallenge?.id) return;
     setMarkingSolved(true);
+    const path = `users/${userId}/challenges/${currentChallenge.id}`;
     try {
       const challengeRef = doc(db, 'users', userId, 'challenges', currentChallenge.id);
       await updateDoc(challengeRef, {
@@ -64,7 +66,7 @@ export function Challenges({ onSelect, userId }: Props) {
         origin: { y: 0.6 }
       });
     } catch (error) {
-      console.error('Error marking as solved:', error);
+      handleFirestoreError(error, OperationType.UPDATE, path);
     } finally {
       setMarkingSolved(false);
     }
@@ -114,8 +116,9 @@ export function Challenges({ onSelect, userId }: Props) {
       
       let savedChallenge = challenge;
       if (userId) {
+        const path = `users/${userId}/challenges`;
         try {
-          const docRef = await addDoc(collection(db, 'users', userId, 'challenges'), {
+          const docRef = await addDoc(collection(db, path), {
             ...challenge,
             solved: false,
             createdAt: serverTimestamp()
@@ -123,7 +126,7 @@ export function Challenges({ onSelect, userId }: Props) {
           savedChallenge = { ...challenge, id: docRef.id, solved: false };
           fetchHistory();
         } catch (dbError) {
-          console.error('Error guardando en Firestore:', dbError);
+          handleFirestoreError(dbError, OperationType.CREATE, path);
         }
       }
       setCurrentChallenge(savedChallenge);
