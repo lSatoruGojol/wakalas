@@ -19,7 +19,11 @@ export function Challenges({ onSelect, userId }: Props) {
   const generateChallenge = async () => {
     setGenerating(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('GEMINI_API_KEY no encontrada. Configure VITE_GEMINI_API_KEY en las variables de entorno.');
+      }
+      const ai = new GoogleGenAI({ apiKey });
       const prompt = `Genera un nuevo problema de estática basado en un eje con polea y palanca. 
       Devuelve SOLO un objeto JSON con:
       - title: (str)
@@ -28,11 +32,11 @@ export function Challenges({ onSelect, userId }: Props) {
       Rangos sugeridos: loadA(500-1500), lever(150-300), pulley(80-180), dists(40-150).`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-1.5-flash',
         contents: prompt
       });
 
-      const text = response.text ?? '{}';
+      const text = response.text || '{}';
       const cleanJson = text.replace(/```json|```/g, '').trim();
       const challenge = JSON.parse(cleanJson);
       
