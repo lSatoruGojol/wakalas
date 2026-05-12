@@ -5,7 +5,8 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { StaticsParameters, useStaticsSolver } from '../../hooks/useStaticsSolver';
 import { cn } from '../../lib/utils';
 import { db } from '../../lib/firebase';
-import { collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs, updateDoc, doc } from 'firebase/firestore';
+import confetti from 'canvas-confetti';
 
 interface Props {
   onSelect: (p: StaticsParameters) => void;
@@ -18,6 +19,7 @@ export function Challenges({ onSelect, userId }: Props) {
   const [history, setHistory] = useState<any[]>([]);
   const [showSolution, setShowSolution] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [markingSolved, setMarkingSolved] = useState(false);
 
   // Fetch history when userId changes or when a new challenge is generated
   useEffect(() => {
@@ -32,7 +34,7 @@ export function Challenges({ onSelect, userId }: Props) {
       const q = query(
         collection(db, 'users', userId, 'challenges'),
         orderBy('createdAt', 'desc'),
-        limit(10)
+        limit(15)
       );
       const querySnapshot = await getDocs(q);
       const h: any[] = [];
@@ -42,6 +44,29 @@ export function Challenges({ onSelect, userId }: Props) {
       setHistory(h);
     } catch (error) {
       console.error('Error fetching history:', error);
+    }
+  };
+
+  const markAsSolved = async () => {
+    if (!userId || !currentChallenge?.id) return;
+    setMarkingSolved(true);
+    try {
+      const challengeRef = doc(db, 'users', userId, 'challenges', currentChallenge.id);
+      await updateDoc(challengeRef, {
+        solved: true,
+        solvedAt: serverTimestamp()
+      });
+      setCurrentChallenge({ ...currentChallenge, solved: true });
+      fetchHistory();
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    } catch (error) {
+      console.error('Error marking as solved:', error);
+    } finally {
+      setMarkingSolved(false);
     }
   };
 
@@ -58,7 +83,7 @@ export function Challenges({ onSelect, userId }: Props) {
 
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        contents: prompt,
         config: {
           responseMimeType: 'application/json',
           responseSchema: {
@@ -86,19 +111,22 @@ export function Challenges({ onSelect, userId }: Props) {
 
       const text = response.text || '';
       const challenge = JSON.parse(text);
-      setCurrentChallenge(challenge);
-
+      
+      let savedChallenge = challenge;
       if (userId) {
         try {
-          await addDoc(collection(db, 'users', userId, 'challenges'), {
+          const docRef = await addDoc(collection(db, 'users', userId, 'challenges'), {
             ...challenge,
+            solved: false,
             createdAt: serverTimestamp()
           });
+          savedChallenge = { ...challenge, id: docRef.id, solved: false };
           fetchHistory();
         } catch (dbError) {
           console.error('Error guardando en Firestore:', dbError);
         }
       }
+      setCurrentChallenge(savedChallenge);
     } catch (error) {
       console.error('Error en generateChallenge:', error);
     } finally {
@@ -205,7 +233,12 @@ export function Challenges({ onSelect, userId }: Props) {
                     <BookOpen className="w-5 h-5 text-cyan-400" />
                   </div>
                   <div className="flex flex-col items-start flex-1 overflow-hidden">
-                    <span className="text-xs font-bold text-white uppercase tracking-tight truncate w-full">{h.title}</span>
+                    <div className="flex items-center gap-2 w-full">
+                      <span className="text-xs font-bold text-white uppercase tracking-tight truncate flex-1">{h.title}</span>
+                      {h.solved && (
+                        <span className="bg-emerald-500/20 text-emerald-400 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase">Completado</span>
+                      )}
+                    </div>
                     <span className="text-[8px] text-zinc-500 font-mono uppercase italic">
                       {h.createdAt?.toDate ? h.createdAt.toDate().toLocaleDateString() : 'Cargando...'}
                     </span>
@@ -255,9 +288,20 @@ export function Challenges({ onSelect, userId }: Props) {
                     "w-16 h-16 rounded-2xl border transition-all flex items-center justify-center group/btn",
                     showSolution ? "bg-amber-500/20 border-amber-500" : "bg-white/5 border-white/5 hover:bg-amber-500/10"
                   )}
+                  title="Ver Solución Paso a Paso"
                 >
                   <Trophy className={cn("w-6 h-6 transition-all", showSolution ? "text-amber-500 scale-110" : "text-amber-500/50 group-hover/btn:text-amber-500")} />
                 </button>
+                {userId && !currentChallenge.solved && (
+                  <button 
+                    onClick={markAsSolved}
+                    disabled={markingSolved}
+                    className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl hover:bg-emerald-500/20 transition-all flex items-center justify-center group/check disabled:opacity-50"
+                    title="Marcar como Resuelto"
+                  >
+                    <Trophy className="w-6 h-6 text-emerald-500/50 group-hover/check:text-emerald-500 group-hover/check:scale-110 transition-all" />
+                  </button>
+                )}
               </div>
 
               <AnimatePresence>
