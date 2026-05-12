@@ -25,7 +25,7 @@ export function Challenges({ onSelect, userId }: Props) {
       }
       const ai = new GoogleGenAI({ apiKey });
       const prompt = `Genera un nuevo problema de estática basado en un eje con polea y palanca. 
-      Devuelve ÚNICAMENTE un objeto JSON válido con este formato:
+      Devuelve ÚNICAMENTE un objeto JSON con este formato:
       {
         "title": "string",
         "description": "string corto",
@@ -46,7 +46,7 @@ export function Challenges({ onSelect, userId }: Props) {
       });
 
       const text = response.text || '';
-      console.log('Raw AI response:', text);
+      console.log('AI response text:', text);
       
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error('No se pudo encontrar un JSON válido en la respuesta de la IA.');
@@ -66,7 +66,6 @@ export function Challenges({ onSelect, userId }: Props) {
       }
     } catch (error) {
       console.error('Error en generateChallenge:', error);
-      alert('Error al generar el problema. Reintente en unos segundos.');
     } finally {
       setGenerating(false);
     }
