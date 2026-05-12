@@ -129,7 +129,7 @@ export function TutorialOverlay({ onComplete, onStart }: { onComplete: () => voi
   const getCardStyle = () => {
     const padding = 16;
     const cardWidth = Math.min(440, window.innerWidth - padding * 2);
-    const cardHeight = 320; // Maximum expected height
+    const cardHeight = Math.min(320, window.innerHeight - padding * 2);
     
     let top = 0;
     let left = 0;
@@ -196,7 +196,7 @@ export function TutorialOverlay({ onComplete, onStart }: { onComplete: () => voi
           className="absolute pointer-events-auto"
           style={cardStyle}
         >
-          <div className="bg-[#0f172a] border border-white/10 rounded-[40px] p-10 shadow-[0_40px_120px_rgba(0,0,0,1)] overflow-hidden relative group">
+          <div className="bg-[#0f172a] border border-white/10 rounded-[32px] md:rounded-[40px] p-6 md:p-10 shadow-[0_40px_120px_rgba(0,0,0,1)] overflow-hidden relative group max-h-[85vh] overflow-y-auto custom-scrollbar">
             {/* Ambient Background */}
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent pointer-events-none" />
             <div className="absolute -top-20 -right-20 w-64 h-64 bg-cyan-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-cyan-500/15 transition-all duration-700" />

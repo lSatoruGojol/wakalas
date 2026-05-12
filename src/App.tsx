@@ -16,8 +16,8 @@ const GestureManager = lazy(() => import('./components/GestureManager').then(mod
 const SolverPanel = lazy(() => import('./components/SolverPanel').then(module => ({ default: module.SolverPanel })));
 const Destinar = lazy(() => import('./components/Destinar').then(module => ({ default: module.Destinar })));
 const AuthOverlay = lazy(() => import('./components/AuthOverlay').then(module => ({ default: module.AuthOverlay })));
-
 import { TutorialOverlay } from './components/TutorialOverlay';
+import { AuthOverlay as AuthComponent } from './components/AuthOverlay';
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -124,7 +124,7 @@ export default function App() {
       </AnimatePresence>
 
       <Suspense fallback={null}>
-        <AuthOverlay show={!user && !loading} />
+        <AuthComponent show={!user && !loading} />
       </Suspense>
 
       <AnimatePresence>

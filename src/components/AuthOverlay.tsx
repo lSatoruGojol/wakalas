@@ -21,8 +21,18 @@ export function AuthOverlay({ show }: Props) {
       await signInWithGoogle();
     } catch (err: any) {
       console.error('Login error:', err);
+      // More descriptive error codes
+      let errorMessage = 'Reintentar protocolo.';
+      if (err.code === 'auth/popup-blocked') {
+        errorMessage = 'POPUP_BLOQUEADO. Habilite popups.';
+      } else if (err.code === 'auth/unauthorized-domain') {
+        errorMessage = 'DOMINIO_NO_AUTORIZADO. Contacte soporte.';
+      } else if (err.code) {
+        errorMessage = `ERROR_${err.code.toUpperCase().replace(/\//g, '_')}`;
+      }
+      
       if (err.code !== 'auth/cancelled-popup-request' && err.code !== 'auth/popup-closed-by-user') {
-        setError('Error de enlace. Reintentar protocolo.');
+        setError(errorMessage);
       }
     } finally {
       setIsLoggingIn(false);
@@ -42,7 +52,7 @@ export function AuthOverlay({ show }: Props) {
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="relative w-full max-w-lg p-16 glass-card rounded-[60px] border-white/5 shadow-[0_0_150px_rgba(0,0,0,0.9)] flex flex-col items-center text-center gap-12"
+        className="relative w-full max-w-lg p-8 md:p-16 glass-card rounded-[40px] md:rounded-[60px] border-white/5 shadow-[0_0_150px_rgba(0,0,0,0.9)] flex flex-col items-center text-center gap-8 md:gap-12 overflow-y-auto max-h-[90vh] custom-scrollbar"
       >
         <div className="relative group">
           <div className="absolute -inset-10 bg-cyan-500/20 blur-[60px] animate-pulse" />
@@ -95,7 +105,7 @@ export function AuthOverlay({ show }: Props) {
             </span>
           </button>
 
-          {error && (
+            {error && (
             <motion.div 
                initial={{ opacity: 0, y: 10 }} 
                animate={{ opacity: 1, y: 0 }}

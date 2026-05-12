@@ -26,7 +26,11 @@ export function Destinar() {
     setIsTyping(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('GEMINI_API_KEY no encontrada. Configure VITE_GEMINI_API_KEY en su entorno.');
+      }
+      const ai = new GoogleGenAI({ apiKey });
       
       const prompt = `Actúa como 'Destinar', un asistente virtual de ingeniería mecánica futurista y elegante. 
       Tu objetivo es ayudar al usuario con problemas de Estática, específicamente el 4.150 o variaciones del mismo.
