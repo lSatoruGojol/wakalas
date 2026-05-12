@@ -25,31 +25,48 @@ export function Challenges({ onSelect, userId }: Props) {
       }
       const ai = new GoogleGenAI({ apiKey });
       const prompt = `Genera un nuevo problema de estática basado en un eje con polea y palanca. 
-      Devuelve SOLO un objeto JSON con:
-      - title: (str)
-      - description: (str) corto
-      - params: { loadA: num, leverLength: num, pulleyRadius: num, distBC: num, distCD: num, distDE: num }
+      Devuelve ÚNICAMENTE un objeto JSON válido con este formato:
+      {
+        "title": "string",
+        "description": "string corto",
+        "params": { 
+          "loadA": number, 
+          "leverLength": number, 
+          "pulleyRadius": number, 
+          "distBC": number, 
+          "distCD": number, 
+          "distDE": number 
+        }
+      }
       Rangos sugeridos: loadA(500-1500), lever(150-300), pulley(80-180), dists(40-150).`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-1.5-flash',
-        contents: prompt
+        contents: [{ role: 'user', parts: [{ text: prompt }] }]
       });
 
-      const text = response.text || '{}';
-      const cleanJson = text.replace(/```json|```/g, '').trim();
-      const challenge = JSON.parse(cleanJson);
+      const text = response.text || '';
+      console.log('Raw AI response:', text);
       
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('No se pudo encontrar un JSON válido en la respuesta de la IA.');
+      
+      const challenge = JSON.parse(jsonMatch[0]);
       setCurrentChallenge(challenge);
 
       if (userId) {
-        await addDoc(collection(db, 'users', userId, 'challenges'), {
-          ...challenge,
-          createdAt: serverTimestamp()
-        });
+        try {
+          await addDoc(collection(db, 'users', userId, 'challenges'), {
+            ...challenge,
+            createdAt: serverTimestamp()
+          });
+        } catch (dbError) {
+          console.error('Error guardando en Firestore:', dbError);
+        }
       }
     } catch (error) {
-      console.error(error);
+      console.error('Error en generateChallenge:', error);
+      alert('Error al generar el problema. Reintente en unos segundos.');
     } finally {
       setGenerating(false);
     }

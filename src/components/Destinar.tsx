@@ -39,11 +39,11 @@ export function Destinar() {
       Pregunta: ${userMsg}`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt
+        model: 'gemini-1.5-flash',
+        contents: [{ role: 'user', parts: [{ text: prompt }] }]
       });
 
-      setMessages(prev => [...prev, { role: 'ai', content: response.text ?? 'Error de sincronización con el núcleo.' }]);
+      setMessages(prev => [...prev, { role: 'ai', content: response.text || 'Error de sincronización con el núcleo.' }]);
     } catch (error) {
       setMessages(prev => [...prev, { role: 'ai', content: 'Interrupción en el flujo de datos. Por favor, reintente.' }]);
     } finally {
