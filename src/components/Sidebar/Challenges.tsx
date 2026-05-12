@@ -41,17 +41,17 @@ export function Challenges({ onSelect, userId }: Props) {
       Rangos sugeridos: loadA(500-1500), lever(150-300), pulley(80-180), dists(40-150).`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
-        contents: [{ role: 'user', parts: [{ text: prompt }] }]
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json'
+        }
       });
 
       const text = response.text || '';
       console.log('AI response text:', text);
       
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('No se pudo encontrar un JSON válido en la respuesta de la IA.');
-      
-      const challenge = JSON.parse(jsonMatch[0]);
+      const challenge = JSON.parse(text);
       setCurrentChallenge(challenge);
 
       if (userId) {

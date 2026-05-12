@@ -39,8 +39,8 @@ export function Destinar() {
       Pregunta: ${userMsg}`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
-        contents: [{ role: 'user', parts: [{ text: prompt }] }]
+        model: 'gemini-3-flash-preview',
+        contents: prompt
       });
 
       setMessages(prev => [...prev, { role: 'ai', content: response.text || 'Error de sincronización con el núcleo.' }]);
